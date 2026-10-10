@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -50,5 +51,16 @@ test
 prompt
 
 server.log
+
+# Database (SQLite — reproducible via `bun run db:push` + prisma/seed.ts)
+db/*.db
+db/*.db-journal
+
+# Realtime service logs
+realtime.log
+
+# Verification screenshots (not part of source)
+screenshot-*.png
+
 # Skills directory
 /skills/
