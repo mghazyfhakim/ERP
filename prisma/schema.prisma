@@ -1,0 +1,103 @@
+// Nexus ERP Suite - Prisma Schema
+// Modular ERP SaaS data model optimized for SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id           String      @id @default(cuid())
+  sku          String      @unique
+  name         String
+  category     String
+  description  String?
+  price        Float
+  cost         Float
+  stock        Int
+  reorderLevel Int
+  supplier     String
+  status       String      @default("active") // active | inactive
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]
+
+  @@index([category])
+  @@index([status])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  type      String   @default("individual") // individual | business
+  status    String   @default("active") // active | inactive | vip
+  address   String?
+  city      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@index([type])
+  @@index([status])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  status        String      @default("pending") // pending | paid | shipped | delivered | cancelled
+  paymentMethod String      @default("card") // card | cash | transfer | ewallet
+  subtotal      Float
+  tax           Float
+  discount      Float
+  total         Float
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+
+  @@index([status])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  total     Float
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String // order_created | order_updated | stock_low | customer_added | payment_received | restock | inventory_updated
+  title       String
+  description String
+  actor       String   @default("System")
+  meta        String? // JSON string for SQLite
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
